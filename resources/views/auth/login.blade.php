@@ -51,11 +51,14 @@
     <!-- /.login-logo -->
     <div class="card card-outline card-primary">
         <div class="card-header text-center">
-        <a href="/" class="h1"><b>Papaya</b>WEB</a>
+        <!-- <a href="/" class="h1"><b>Papaya</b>WEB</a> -->
         </div>
         <x-toast-message></x-toast-message>
         <div class="card-body">
-        <p class="login-box-msg">Sign in to start your session</p>
+        <div class="d-flex justify-content-center align-items-center">
+            <img src="{{ asset('/dist/img/logo.jpg') }}" alt="" height="100" style="border-radius: 50%;"/>
+        </div>
+        <p class="login-box-msg">Inicie sesión</p>
         <form method="POST" action="{{ route('login') }}">
             @csrf
             <div class="input-group mb-3">
@@ -67,7 +70,7 @@
             </div>
             </div>
             <div class="input-group mb-3">
-            <input type="password" class="form-control" placeholder="Password" name="password" required>
+            <input type="password" class="form-control" placeholder="Contraseña" name="password" required>
             <div class="input-group-append">
                 <div class="input-group-text">
                 <span class="fas fa-lock"></span>
@@ -79,13 +82,13 @@
                 <div class="icheck-primary">
                 <input type="checkbox" id="remember" name="remember">
                 <label for="remember">
-                    Remember Me
+                    Recordarme
                 </label>
                 </div>
             </div>
             <!-- /.col -->
             </div>
-        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
         </form>
         @if (Route::has('password.request'))
             <p class="mb-1">

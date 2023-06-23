@@ -18,8 +18,10 @@ class UserController extends Controller
             'lastname' => 'required|string|max:60',
             'username' => 'required|string|max:60',
             'email' => 'required|string|max:100|email|unique:users,email,',
-            // 'password' => 'required|max:255|min:8|confirmed',
-            // 'password_confirmation'  => 'required|max:255|same:password'
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'required|numeric|distinct',
+            'password' => 'required|max:255|min:8|confirmed',
+            'password_confirmation'  => 'required|max:255|same:password'
         ]);
 
         try {
@@ -28,12 +30,11 @@ class UserController extends Controller
             $user = new User();
 
             $user->name = $request->input('name');
-            $user->lastname = $request->input('lastname'); 
-            $user->email = $request->input('email'); 
-            $user->username = $request->input('username'); 
-            $user->admin = $request->input('admin') == 1 ? true : false; 
-            $password = Hash::make(strtolower($request->input('username')).'123');
-        
+            $user->lastname = $request->input('lastname');
+            $user->email = $request->input('email');
+            $user->username = $request->input('username');
+            $user->admin = $request->input('admin') == 1 ? true : false;
+            $password = Hash::make($request->input('password'));
             $user->password = $password;
 
             $user->save();
@@ -58,7 +59,7 @@ class UserController extends Controller
             return redirect()->back()->withInput()->with('error', "Hubo un error: {$error->getMessage()}");
         }
 
-        return redirect()->back()->with('success', "Información creada satisfactoriamente"); 
+        return redirect()->back()->with('success', "Información creada satisfactoriamente");
     }
 
     public function update(Request $request){
@@ -80,10 +81,10 @@ class UserController extends Controller
             }
 
             $user->name = $request->input('name');
-            $user->lastname = $request->input('lastname'); 
-            $user->username = $request->input('username'); 
-            $user->email = $request->input('email'); 
-            $user->admin = $request->input('admin') == 1 ? true : false; 
+            $user->lastname = $request->input('lastname');
+            $user->username = $request->input('username');
+            $user->email = $request->input('email');
+            $user->admin = $request->input('admin') == 1 ? true : false;
 
             $user->update();
 
@@ -97,20 +98,20 @@ class UserController extends Controller
             return redirect()->back()->withInput()->with('error', "Hubo un error: {$error->getMessage()}");
         }
 
-        return redirect()->back()->with('success', "Información actualizada satisfactoriamente"); 
+        return redirect()->back()->with('success', "Información actualizada satisfactoriamente");
     }
 
     public function changePassword(Request $request){
-        
+
         $validatedData = $request->validate([
             'id' => 'required',
             'password' => 'required|max:255|min:8|confirmed',
             'password_confirmation'  => 'required|max:255|same:password'
         ]);
-        
+
         try {
             DB::beginTransaction();
-            
+
             $user = User::where('id', $request->input('id'))->first();
 
             if(!$user){
@@ -118,7 +119,7 @@ class UserController extends Controller
             }
 
             $password = Hash::make($request->input('password'));
-            
+
             $user->password = $password;
 
             $user->update();
@@ -133,7 +134,7 @@ class UserController extends Controller
             return redirect()->back()->withInput()->with('error', "Hubo un error: {$error->getMessage()}");
         }
 
-        return redirect()->back()->with('success', "Contraseña actualizada correctamente"); 
+        return redirect()->back()->with('success', "Contraseña actualizada correctamente");
     }
 
     public function desactiveAccount(Request $request){
@@ -150,19 +151,19 @@ class UserController extends Controller
 
             for($i=0;$i<count($request->input('id'));$i++){
                $user = User::where('id', $request->input('id')[$i])->first();
-               
+
                if(!$user){
                     throw new Exception("El usuario al que intenta acceder no existe. ID = {$request->input('id')[$i]}", 1);
                }
                $user->active = $request->input('active')[$i];
 
-               $user->update();  
-               
+               $user->update();
+
                if($user->active == 0){
                    if (config('session.driver') !== 'database') {
                        return;
                     }
-                    
+
                     DB::connection(config('session.connection'))->table(config('session.table', 'sessions'))
                     ->where('user_id', $request->input('id')[$i])
                     ->delete();
@@ -201,7 +202,7 @@ class UserController extends Controller
                $password = Hash::make($request->input('passwordUsers'));
                $user->password = $password;
 
-               $user->update();  
+               $user->update();
             }
             DB::commit();
         } catch(Illuminate\Database\QueryException $error){
@@ -217,7 +218,7 @@ class UserController extends Controller
     }
 
     public function updateInformationUser(Request $request){
-        
+
         $validatedData = $request->validate([
             'id' => 'required|numeric',
             'name' => 'required|string|max:25',
@@ -231,24 +232,24 @@ class UserController extends Controller
 
         try {
 
-            
+
             DB::beginTransaction();
 
             $user = User::where('id',$request->input('id'))->first();
-            
+
             if(!$user){
                 throw new Exception("El usuario al que intenta acceder no existe.", 1);
             }
-            
+
             $lastEmail = $user->email;
-            
-            $user->name = $request->input('name'); 
-            $user->lastname = $request->input('lastname'); 
-            $user->username = $request->input('username'); 
-            $user->email = $request->input('email'); 
-        
+
+            $user->name = $request->input('name');
+            $user->lastname = $request->input('lastname');
+            $user->username = $request->input('username');
+            $user->email = $request->input('email');
+
             $user->update();
-        
+
             // $this->verifyEmailForUpdateInformation($lastEmail, $user);
 
             $permissions =  DB::table('permissions')
@@ -265,10 +266,10 @@ class UserController extends Controller
                     $user->givePermissionTo($request->input('permissions')[$i]);
                 }
             }
-            
+
             $roles = DB::table('roles')->join('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
                             ->select('roles.id')->where('model_has_roles.model_id', $user->id) ->get();
-            
+
             foreach($roles as $role){
                 $user->removeRole($role->id);
             }
@@ -287,11 +288,11 @@ class UserController extends Controller
             return redirect()->back()->withInput()->with('error', "Oh, parece que hubo un error: {$error->getMessage()}");
         }
 
-        return redirect()->back()->with('success', "Información actualizada satisfactoriamente"); 
+        return redirect()->back()->with('success', "Información actualizada satisfactoriamente");
     }
 
     public function updateInformationProfile(Request $request){
-        
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:25',
             'username' => 'required|string|max:30',
@@ -301,16 +302,16 @@ class UserController extends Controller
 
         try {
             $user = \Auth::user();
-            
+
             $lastEmail = $user->email;
 
-            $user->name = $request->input('name'); 
-            $user->lastname = $request->input('lastname'); 
-            $user->username = $request->input('username'); 
-            $user->email = $request->input('email'); 
-            
+            $user->name = $request->input('name');
+            $user->lastname = $request->input('lastname');
+            $user->username = $request->input('username');
+            $user->email = $request->input('email');
+
             $user->update();
-            
+
         } catch(Illuminate\Database\QueryException $error){
             return redirect()->back()->withInput()->with('error', "Oh, parece que hubo un error: {$error->getMessage()}");
         }
@@ -322,7 +323,7 @@ class UserController extends Controller
     }
 
     public function updatePasswordUser(Request $request){
-        
+
         $validatedData = $request->validate([
             // 'id' => ['exclude_if:password_verified,"true"','required', 'numeric'],
             'current_password' => 'required|max:255|password',
@@ -331,22 +332,22 @@ class UserController extends Controller
         ]);
 
         try {
-            
+
             DB::beginTransaction();
-            
+
             $user = \Auth::user();
-            
+
             if(!$user){
                 throw new Exception("El usuario al que intenta acceder no existe.", 1);
             }
-            
+
             $password = Hash::make($request->input('password'));
             $user->password = $password;
-            
+
             if ( !($request->input('password_verified') === null) ){
                 $user->password_verified = \Carbon\Carbon::now();
             }
-            
+
             $user->update();
 
             DB::commit();
@@ -359,7 +360,7 @@ class UserController extends Controller
             return redirect()->back()->withInput()->with('error', "Oh, parece que hubo un error: {$error->getMessage()}");
         }
 
-        return redirect()->back()->with('success', "Información actualizada satisfactoriamente"); 
+        return redirect()->back()->with('success', "Información actualizada satisfactoriamente");
     }
 
     public function index(){
@@ -379,11 +380,11 @@ class UserController extends Controller
     public function updateInformationUserView($id){
         $user = User::where('id', $id)->with(['roles'])->first();
         $userPermissions = $user->getAllPermissions();
-    
+
         $userRoles = DB::table('roles')
             ->join('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->select('roles.*')
-            ->where('model_has_roles.model_id', $id) 
+            ->where('model_has_roles.model_id', $id)
             ->get();
 
         $rolesSelected = array();

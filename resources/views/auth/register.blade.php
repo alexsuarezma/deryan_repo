@@ -68,7 +68,7 @@
             <span class="text-gray-500 text-lg">
                 El Usuario no existe...
             </span>
-        </div>            
+        </div>
     @else
         <section class="content">
             <!-- general form elements -->
@@ -90,38 +90,39 @@
                                 <!-- /.card-header -->
                                 <!-- form start -->
                                 <!-- <form method="POST" action="{{ route('user.create.post') }}"> -->
-                                    
+
                                     <div class="card-body">
                                         <div class="form-group">
                                             <label for="exampleInputNombres1">Nombres</label>
-                                            <input type="text" name="name" class="form-control" id="exampleInputNombres1" 
+                                            <input type="text" name="name" class="form-control" id="exampleInputNombres1"
                                             value="{{ Route::is('user.update') ? $user->name : old('name')}}" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputApellidos1">Apellidos</label>
-                                            <input type="text" name="lastname" class="form-control" id="exampleInputApellidos1" 
+                                            <input type="text" name="lastname" class="form-control" id="exampleInputApellidos1"
                                             value="{{ Route::is('user.update') ? $user->lastname : old('lastname')}}" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputUserName1">Nombre de usuario</label>
-                                            <input type="text" name="username" class="form-control" id="exampleInputUserName1" 
+                                            <input type="text" name="username" class="form-control" id="exampleInputUserName1"
                                             value="{{ Route::is('user.update') ? $user->username : old('username')}}" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Email address</label>
-                                            <input type="email" name="email" class="form-control" id="exampleInputEmail1" 
+                                            <input type="email" name="email" class="form-control" id="exampleInputEmail1"
                                             value="{{ Route::is('user.update') ? $user->email : old('email')}}" required>
                                         </div>
-                                        <!-- <div class="form-group">
-                                            <label for="exampleInputPassword1">Contraseña</label>
-                                            <input type="password" name="password" class="form-control" id="exampleInputPassword1" 
-                                            value="{{ Route::is('user.update') ? $user->name : old('name')}}" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="exampleInputPasswordconfirmation1">Confirmar Contraseña</label>
-                                            <input type="password" name="password_confirmation" class="form-control" id="exampleInputPasswordconfirmation1" 
-                                            value="{{ Route::is('user.update') ? $user->name : old('name')}}" required>
-                                        </div> -->
+                                        @if(Route::is('user.create'))
+                                            <div class="form-group">
+                                                <label for="exampleInputPassword1">Contraseña</label>
+                                                <input type="password" name="password" class="form-control" id="exampleInputPassword1" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="exampleInputPasswordconfirmation1">Confirmar Contraseña</label>
+                                                <input type="password" name="password_confirmation" class="form-control" id="exampleInputPasswordconfirmation1" required>
+                                            </div>
+                                        @endif
+
                                         <!-- <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="exampleCheck1" name="admin" value="1" {{ old('admin') == 1 ? 'checked' : '' }}>
                                             <label class="form-check-label" for="exampleCheck1">Administrador</label>
@@ -152,10 +153,12 @@
                                             <div class="col">
                                                 <button type="button" class="btn btn-block btn-outline-secondary btn-sm" data-toggle="modal" data-target="#modal-change-password-user">Cambiar contraseña</button>
                                             </div>
-                                            <div class="col">
-                                                <button type="button" class="btn btn-outline-{{ $user->active == 1 ? 'danger' : 'success'}} btn-block btn-sm" data-toggle="modal" data-target="#modal-desactive-active-user">{{ $user->active == 1 ? 'Desactivar' : 'Activar'}} esta cuenta</button>
-                                            </div>
-                                        </div>                                    
+                                            @if(strtolower($user->name) != 'administrador')
+                                                <div class="col">
+                                                    <button type="button" class="btn btn-outline-{{ $user->active == 1 ? 'danger' : 'success'}} btn-block btn-sm" data-toggle="modal" data-target="#modal-desactive-active-user">{{ $user->active == 1 ? 'Desactivar' : 'Activar'}} esta cuenta</button>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -190,7 +193,7 @@
                             @csrf
                             @method('PUT')
                             <div class="modal-body">
-                                <p>¿Estás seguro de que deseas {{ $user->active == 1 ? 'desactivar' : 'activar'}} las cuentas seleccionadas? Una vez que {{ $user->active == 1 ? 'desactive' : 'active'}} la cuenta, se {{ $user->active == 1 ? 'negara' : 'permitira'}}  el acceso del usuario a la plataforma. 
+                                <p>¿Estás seguro de que deseas {{ $user->active == 1 ? 'desactivar' : 'activar'}} las cuentas seleccionadas? Una vez que {{ $user->active == 1 ? 'desactive' : 'active'}} la cuenta, se {{ $user->active == 1 ? 'negara' : 'permitira'}}  el acceso del usuario a la plataforma.
                                 <br><br>
                                     Ingrese su contraseña para confirmar que desea {{ $user->active == 1 ? 'desactivar' : 'activar'}} la cuenta.</p>
                                 <input type="hidden" name="id[]" value="{{$user->id}}">
